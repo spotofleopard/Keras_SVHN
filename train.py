@@ -9,6 +9,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 from keras.callbacks import ModelCheckpoint,ReduceLROnPlateau
 from keras.applications import imagenet_utils
+from keras.utils import plot_model
 from data_loader import *
 from logger import TrainValTensorBoard
 from evaluator import *
