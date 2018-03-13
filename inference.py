@@ -11,7 +11,7 @@ model=load_model('c:/saved_models/SVHN/20180311121918.hdf5')
 sample_indice=random.sample(range(x_test.shape[0]),100)
 x_test=x_test[sample_indice]
 y_digits_test=y_digits_test[:,sample_indice]
-predictions=model.predict((x_test/128)-1)
+predictions=model.predict(x_test/255)
 output_dir='c:/tmp/svhn_test'
 if not os.path.exists(output_dir): os.makedirs(output_dir)
 html_str='<html><body><table border=\"1\"><tr><th>Image</th><th>Groud Truth</th><th>Prediction</th></tr>'
