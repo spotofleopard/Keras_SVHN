@@ -33,8 +33,8 @@ class TrainValTensorBoard(keras.callbacks.TensorBoard):
 
         self.val_writer.flush()
 
-        optimizer = self.model.optimizer
-        logs['learning_rate']=K.eval(optimizer.lr * (1. / (1. + optimizer.decay * optimizer.iterations)))
+        #optimizer = self.model.optimizer
+        #logs['learning_rate']=K.eval(optimizer.lr * (1. / (1. + optimizer.decay * optimizer.iterations)))
 
         # Pass the remaining logs to `TensorBoard.on_epoch_end`
         logs = {k: v for k, v in logs.items() if not k.startswith('val_')}
