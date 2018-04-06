@@ -14,7 +14,29 @@ from data_loader import *
 from logger import TrainValTensorBoard
 from evaluator import *
 
-batch_size = 128
+def build_model():
+    feature_map_size=[48,64,128,160,192,192,192,192]
+    data_in = Input(shape=input_shape)
+    layer_input=data_in
+    for i in range(len(feature_map_size)):
+        conv_out=Conv2D(feature_map_size[i],3,activation='relu',padding='same')(layer_input)
+        if(((i+1)%2)==0): 
+            conv_out=MaxPooling2D()(conv_out)
+        conv_out=Dropout(0.3)(conv_out)
+        layer_input=conv_out
+    #output size: (*,4,4,192)
+
+    encoder_inputs=Reshape((16,192))(layer_input)
+    encoder_outputs = LSTM(1024)(encoder_inputs)
+
+    digits=[Dense(num_digit_classes,name='D{}'.format(i), activation='softmax')(encoder_outputs) for i in range(num_len_classes-2)]
+    length=Dense(num_len_classes,name='L', activation='softmax')(encoder_outputs)
+
+    model = Model(inputs=data_in, outputs=[length,*digits])
+    print(model.summary())
+    return model
+
+batch_size = 256
 num_digit_classes = 11
 num_len_classes=7
 epochs = 50
@@ -40,32 +62,9 @@ y_len_test = keras.utils.to_categorical(y_len_test, num_len_classes)
 y_digits_train=[keras.utils.to_categorical(y, num_digit_classes) for y in y_digits_train]
 y_digits_test=[keras.utils.to_categorical(y, num_digit_classes) for y in y_digits_test]
 
-feature_map_size=[48,64,128,160,192,192,192,192]
-data_in = Input(shape=input_shape)
-layer_input=data_in
-for i in range(len(feature_map_size)):
-    conv_out=Conv2D(feature_map_size[i],3,activation='relu',padding='same')(layer_input)
-    conv_out=BatchNormalization()(conv_out)
-    if(((i+1)%2)==0): 
-        conv_out=MaxPooling2D()(conv_out)
-    conv_out=Dropout(0.3)(conv_out)
-    layer_input=conv_out
-#output size: (*,4,4,192)
-
-flattened=Flatten()(layer_input)
-ip1=Dense(2048, activation='relu',activity_regularizer=l2(1e-4))(flattened)
-dropout=Dropout(0.6)(ip1)
-#ip2=Dense(3072,activation='relu',activity_regularizer=l2(2e-4))(dropout)
-#dropout=Dropout(0.6)(ip2)
-
-digits=[Dense(num_digit_classes,name='D{}'.format(i), activation='softmax')(dropout) for i in range(num_len_classes-2)]
-length=Dense(num_len_classes,name='L', activation='softmax')(dropout)
-
-model = Model(inputs=data_in, outputs=[length,*digits])
-print(model.summary())
-
+model=build_model()
 model.compile(loss=keras.losses.categorical_crossentropy,loss_weights=[5,*([1]*(num_len_classes-2))],
-              optimizer=keras.optimizers.SGD(lr=0.01,momentum=0.9,decay=1e-4),
+              optimizer='AdaDelta',
               metrics=['accuracy'])
 
 time_now=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -80,4 +79,3 @@ model.fit(x_train, [y_len_train,*y_digits_train],
           shuffle=True,
           validation_data=(x_test, [y_len_test,*y_digits_test]),
           callbacks=[VectorLabelEvaluator(),TrainValTensorBoard(write_graph=False),checkpoint])
-

@@ -1,8 +1,7 @@
 <h5>Keras implementation of  of <a href="http://arxiv.org/pdf/1312.6082.pdf">Multi-digit Number Recognition from Street View Imagery using Deep Convolutional Neural Networks</a></h5>
-This implementation follows the paper's descriptions of the network, with a couple of differences.
+This implementation follows the paper's descriptions of the network, with one tweak:
 
-* Conv2d layers use 3x3 kernel instead of 5x5
-* Only one fully connected layer with 2048 units.
+* One LSTM layer replaced two fully connected layers
 
-<img src="training_sgd.png">
-It reaches 93.43% after 45 epochs. The training time is about 2ms/step on 2xGTX1080.
+<img src="training.png">
+It reaches 95.65% after 50 epochs. The training time is 4h33m for 50 epochs on 2xGTX1080.
